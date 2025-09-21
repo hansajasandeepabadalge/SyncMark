@@ -45,7 +45,7 @@ SyncMark is a Chrome extension that allows you to sync bookmarks from a remote H
 
 The extension is currently configured to sync from:
 ```
-https://raw.githubusercontent.com/doerofeverything/bookmarks-by-doe/refs/heads/main/bookmarks_by_doe.html
+https://raw.githubusercontent.com/hansajasandeepabadalge/SyncMark/refs/heads/main/bookmarks.html
 ```
 
 To use your own bookmarks file, modify the URL in [`popup.js`](popup.js) in the [`importBookmarks`](popup.js) function.
