@@ -19,7 +19,7 @@ async function importBookmarks() {
   }
 
   // Load the bookmarks.html file from remote source
-  const response = await fetch("");
+  const response = await fetch("https://raw.githubusercontent.com/hansajasandeepabadalge/SyncMark/refs/heads/main/bookmarks.html");
   const text = await response.text();
 
   const parser = new DOMParser();
