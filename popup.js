@@ -19,7 +19,7 @@ async function importBookmarks() {
   }
 
   // Load the bookmarks.html file from remote source
-  const response = await fetch("https://raw.githubusercontent.com/doerofeverything/bookmarks-by-doe/refs/heads/main/bookmarks_by_doe.html");
+  const response = await fetch("");
   const text = await response.text();
 
   const parser = new DOMParser();
