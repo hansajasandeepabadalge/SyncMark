@@ -5,7 +5,7 @@
 <p align="center">A Chrome extension for syncing bookmarks from a remote HTML file to your browser's bookmarks bar.</p>
 
 <p align="center">
-  <a href="#" target="_blank"><img src="https://img.shields.io/badge/version-1.0-blue.svg" alt="Version" /></a>
+  <a href="#" target="_blank"><img src="https://img.shields.io/badge/version-1.1-blue.svg" alt="Version" /></a>
   <a href="#" target="_blank"><img src="https://img.shields.io/badge/manifest-v3-green.svg" alt="Manifest V3" /></a>
   <a href="#" target="_blank"><img src="https://img.shields.io/badge/chrome-extension-orange.svg" alt="Chrome Extension" /></a>
   <a href="#" target="_blank"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License" /></a>
