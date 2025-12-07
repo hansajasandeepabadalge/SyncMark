@@ -1,37 +1,46 @@
 async function importBookmarks() {
-  const SYNCMARK_FOLDER_NAME = "SyncMark";
-  
-  // Find or create the SyncMark folder in the bookmarks bar
-  let syncMarkFolder = await findSyncMarkFolder();
-  
-  if (syncMarkFolder) {
-    // Clear existing bookmarks in SyncMark folder only
-    const children = await chrome.bookmarks.getChildren(syncMarkFolder.id);
-    for (const child of children) {
-      await chrome.bookmarks.removeTree(child.id);
+  updateStatus("Syncing...");
+  try {
+    const SYNCMARK_FOLDER_NAME = "SyncMark";
+
+    // Find or create the SyncMark folder in the bookmarks bar
+    let syncMarkFolder = await findSyncMarkFolder();
+
+    if (syncMarkFolder) {
+      // Clear existing bookmarks in SyncMark folder only
+      const children = await chrome.bookmarks.getChildren(syncMarkFolder.id);
+      for (const child of children) {
+        await chrome.bookmarks.removeTree(child.id);
+      }
+    } else {
+      // Create the SyncMark folder if it doesn't exist
+      syncMarkFolder = await chrome.bookmarks.create({
+        parentId: "1", // 1 = Chrome's bookmarks bar
+        title: SYNCMARK_FOLDER_NAME
+      });
     }
-  } else {
-    // Create the SyncMark folder if it doesn't exist
-    syncMarkFolder = await chrome.bookmarks.create({
-      parentId: "1", // 1 = Chrome's bookmarks bar
-      title: SYNCMARK_FOLDER_NAME
-    });
-  }
 
-  // Load the bookmarks.html file from remote source
-  const response = await fetch("https://raw.githubusercontent.com/hansajasandeepabadalge/SyncMark/refs/heads/main/bookmarks.html");
-  const text = await response.text();
+    // Load the bookmarks.html file from remote source
+    const response = await fetch("https://raw.githubusercontent.com/hansajasandeepabadalge/SyncMark/refs/heads/main/bookmarks.html");
+    const text = await response.text();
 
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(text, "text/html");
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "text/html");
 
-  // Find the "Bookmarks bar" folder
-  const bookmarkBar = doc.querySelector("h3[personal_toolbar_folder='true']");
-  if (bookmarkBar) {
-    const dl = bookmarkBar.nextElementSibling; // its <DL>
-    if (dl) {
-      await importDL(dl, syncMarkFolder.id); // Import into SyncMark folder
+    // Find the "Bookmarks bar" folder
+    const bookmarkBar = doc.querySelector("h3[personal_toolbar_folder='true']");
+    if (bookmarkBar) {
+      const dl = bookmarkBar.nextElementSibling; // its <DL>
+      if (dl) {
+        await importDL(dl, syncMarkFolder.id); // Import into SyncMark folder
+      }
     }
+
+    const time = await saveLastSyncTime();
+    updateStatus(`Synced successfully at ${time}`, "success");
+  } catch (error) {
+    updateStatus("Sync failed: " + error.message, "error");
+    throw error;
   }
 }
 
@@ -41,23 +50,31 @@ async function findSyncMarkFolder() {
 }
 
 async function clearBookmarks() {
-  // Find the SyncMark folder and clear only its contents
-  const syncMarkFolder = await findSyncMarkFolder();
-  
-  if (syncMarkFolder) {
-    const children = await chrome.bookmarks.getChildren(syncMarkFolder.id);
-    for (const child of children) {
-      await chrome.bookmarks.removeTree(child.id);
+  updateStatus("Clearing...");
+  try {
+    // Find the SyncMark folder and clear only its contents
+    const syncMarkFolder = await findSyncMarkFolder();
+
+    if (syncMarkFolder) {
+      const children = await chrome.bookmarks.getChildren(syncMarkFolder.id);
+      for (const child of children) {
+        await chrome.bookmarks.removeTree(child.id);
+      }
+      console.log("SyncMark bookmarks cleared successfully!");
+      updateStatus("Cleared successfully", "success");
+    } else {
+      console.log("No SyncMark folder found to clear.");
+      updateStatus("Nothing to clear", "normal");
     }
-    console.log("SyncMark bookmarks cleared successfully!");
-  } else {
-    console.log("No SyncMark folder found to clear.");
+  } catch (error) {
+    updateStatus("Error clearing: " + error.message, "error");
+    throw error;
   }
 }
 
 async function importDL(dlElement, parentId) {
   const children = dlElement.querySelectorAll(":scope > dt");
-  
+
   for (const dt of children) {
     const h3 = dt.querySelector(":scope > h3");
     const a = dt.querySelector(":scope > a");
@@ -65,9 +82,9 @@ async function importDL(dlElement, parentId) {
 
     if (h3) {
       // Create folder
-      const newFolder = await chrome.bookmarks.create({ 
-        parentId, 
-        title: h3.textContent 
+      const newFolder = await chrome.bookmarks.create({
+        parentId,
+        title: h3.textContent
       });
       if (dl) {
         await importDL(dl, newFolder.id);
@@ -85,6 +102,7 @@ async function importDL(dlElement, parentId) {
 
 // when the popup is opened, automatically trigger functions
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadLastSyncTime();
   await importBookmarks();
 });
 
@@ -106,3 +124,25 @@ document.getElementById("clear").addEventListener("click", async () => {
     console.error("Error clearing bookmarks:", error);
   }
 });
+
+// Helper functions used for updating status and persistence
+function updateStatus(message, type = 'normal') {
+  const statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = message;
+    statusEl.className = type === 'success' ? 'status-success' : (type === 'error' ? 'status-error' : '');
+  }
+}
+
+async function saveLastSyncTime() {
+  const time = new Date().toLocaleTimeString();
+  await chrome.storage.local.set({ lastSyncTime: time });
+  return time;
+}
+
+async function loadLastSyncTime() {
+  const data = await chrome.storage.local.get('lastSyncTime');
+  if (data.lastSyncTime) {
+    updateStatus(`Last synced: ${data.lastSyncTime}`);
+  }
+}
