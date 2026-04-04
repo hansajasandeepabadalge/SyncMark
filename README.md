@@ -22,6 +22,7 @@ SyncMark is a Chrome extension that allows you to sync bookmarks from a remote H
 - 📁 **Folder Support**: Preserves folder structure from the HTML file
 - 🌐 **Remote Source**: Fetches bookmarks from a GitHub-hosted HTML file
 - 🎨 **Clean UI**: Simple and intuitive popup interface
+- 📚 **150+ Links Curated**: Includes over 150 carefully collected and personally tested links.
 
 ## Installation
 
